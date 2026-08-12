@@ -1,0 +1,58 @@
+// ===================================================
+// TalentPulse Analytics - HR Monthly Workforce Analytics
+// Core DAX Measures Script
+// ===================================================
+
+// 1. Total Salary Paid
+// Description: Calculates the total actual prorated salary paid across active workforce.
+Total Salary Paid = 
+SUM(FactMonthlyWorkforce[SalaryPaid])
+
+
+// 2. Employee Headcount
+// Description: Evaluates the unique count of active employees in the current filter context.
+Employee Headcount = 
+DISTINCTCOUNT(FactMonthlyWorkforce[EmployeeID])
+
+
+// 3. Average Performance Score
+// Description: Evaluates the average performance rating of employees in context.
+Average Performance Score = 
+AVERAGE(FactMonthlyWorkforce[PerformanceScore])
+
+
+// 4. Salary Paid — Previous Year
+// Description: Time-intelligence measure evaluating payroll expenditure for the equivalent prior-year period.
+Salary Paid - Previous Year = 
+CALCULATE(
+    [Total Salary Paid],
+    SAMEPERIODLASTYEAR(DimDate[Date])
+)
+
+
+// 5. Department Payroll % of Total (Primary Solution using REMOVEFILTERS)
+// Description: Dynamic ratio calculating each department's share of total company payroll regardless of department slicers applied in visual context.
+Department Payroll % of Total = 
+VAR CurrentDeptSalary = [Total Salary Paid]
+VAR TotalCompanySalary = 
+    CALCULATE(
+        [Total Salary Paid],
+        REMOVEFILTERS(DimDepartment)
+    )
+RETURN
+    DIVIDE(CurrentDeptSalary, TotalCompanySalary, 0)
+
+
+// ---------------------------------------------------
+// Bonus Task: Alternative Implementation using ALL
+// ---------------------------------------------------
+// Description: Equivalent logic utilizing the ALL function to remove filter context from DimDepartment.
+Department Payroll % of Total (ALL) = 
+VAR CurrentDeptSalary = [Total Salary Paid]
+VAR TotalCompanySalary = 
+    CALCULATE(
+        [Total Salary Paid],
+        ALL(DimDepartment)
+    )
+RETURN
+    DIVIDE(CurrentDeptSalary, TotalCompanySalary, 0)
